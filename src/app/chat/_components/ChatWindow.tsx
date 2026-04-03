@@ -259,7 +259,7 @@ export function ChatWindow({
             />
             <Button 
               type="submit" 
-              disabled={!inputText.trim()} 
+              disabled={!inputText.trim() && !previewUrl} 
               className="rounded-full w-12 h-12 p-0 bg-indigo-600 hover:bg-indigo-700 flex-shrink-0 flex items-center justify-center transition-transform active:scale-95"
             >
               <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-5 h-5 relative"><path d="M22 2L11 13"/><path d="M22 2l-7 20-4-9-9-4 20-7z"/></svg>

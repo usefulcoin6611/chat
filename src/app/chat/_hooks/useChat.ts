@@ -215,6 +215,13 @@ export function useChat() {
 
   const handleSendMessage = async (e: React.FormEvent) => {
     e.preventDefault();
+    
+    // If there is a preview file, send it first/with
+    if (previewFile) {
+        await sendPreview();
+        if (!inputText.trim()) return; // If only image, stop here
+    }
+
     if (!inputText.trim() || !activeChat) return;
 
     const chatMessage: ChatMessage = {
