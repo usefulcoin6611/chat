@@ -27,6 +27,9 @@ export default function ChatPage() {
   const [chatPartners, setChatPartners] = useState<string[]>([]);
   const [inputText, setInputText] = useState("");
   const scrollRef = useRef<HTMLDivElement>(null);
+  const inputRef = useRef<HTMLInputElement>(null);
+  const prevMsgCount = useRef<number>(0);
+  const audioRef = useRef<HTMLAudioElement | null>(null);
   
   useEffect(() => {
     const user = localStorage.getItem("chat_username");
@@ -35,7 +38,21 @@ export default function ChatPage() {
       return;
     }
     setCurrentUser(user);
+
+    // Initialize audio notification
+    audioRef.current = new Audio('https://assets.mixkit.co/active_storage/sfx/2358/2358-preview.mp3');
   }, [router]);
+
+  // Handle sound notification when messages change
+  useEffect(() => {
+    if (messages.length > prevMsgCount.current && prevMsgCount.current > 0) {
+      const lastMsg = messages[messages.length - 1];
+      if (lastMsg.senderId !== currentUser) {
+        audioRef.current?.play().catch(e => console.log("Sound blocked by browser interaction policy", e));
+      }
+    }
+    prevMsgCount.current = messages.length;
+  }, [messages, currentUser]);
 
   const markAsRead = async (senderUser: string, recipientUser: string) => {
     try {
@@ -106,6 +123,9 @@ export default function ChatPage() {
     let intervalId: NodeJS.Timeout;
 
     if (currentUser && activeChat) {
+      // Auto focus input when chat opens
+      inputRef.current?.focus();
+
       // Load pertama kali saat chat dibuka
       loadChatHistory(currentUser, activeChat);
       markAsRead(activeChat, currentUser);
@@ -125,10 +145,7 @@ export default function ChatPage() {
   useEffect(() => {
     // Auto scroll to bottom
     if (scrollRef.current) {
-        const scrollContainer = scrollRef.current.querySelector('[data-radix-scroll-area-viewport]');
-        if (scrollContainer) {
-            scrollContainer.scrollTop = scrollContainer.scrollHeight;
-        }
+        scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
     }
   }, [messages]);
 
@@ -137,6 +154,7 @@ export default function ChatPage() {
     if (!recipientId.trim()) return;
     if (recipientId.trim() !== activeChat) {
       setMessages([]); // Kosongkan chat sebelumnya saat beralih percakapan
+      prevMsgCount.current = 0; // Reset counter agar tidak bunyi saat pertama load history baru
       setActiveChat(recipientId.trim());
     }
   };
@@ -200,10 +218,10 @@ export default function ChatPage() {
   };
 
   return (
-    <div className="flex bg-slate-100 dark:bg-slate-950 flex-col md:flex-row min-h-screen">
+    <div className="flex bg-slate-100 dark:bg-slate-950 flex-col md:flex-row h-screen overflow-hidden">
       {/* Sidebar */}
-      <div className="w-full md:w-1/3 lg:w-1/4 border-r bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800 flex flex-col">
-        <div className="p-4 border-b border-slate-200 dark:border-slate-800 flex justify-between items-center bg-indigo-50 dark:bg-slate-800/50">
+      <div className="w-full md:w-1/3 lg:w-1/4 bg-white dark:bg-slate-900 flex flex-col">
+        <div className="p-4 flex justify-between items-center bg-slate-50 dark:bg-slate-800/50">
           <div className="flex items-center space-x-3">
             <Avatar>
               <AvatarFallback className="bg-indigo-600 text-white font-bold">
@@ -212,19 +230,19 @@ export default function ChatPage() {
             </Avatar>
             <span className="font-semibold text-slate-800 dark:text-slate-100">{currentUser}</span>
           </div>
-          <Button variant="ghost" size="sm" onClick={logout} className="text-red-500 hover:text-red-600 hover:bg-red-50">
+          <Button variant="ghost" size="sm" onClick={logout} className="text-red-500 hover:text-red-600 hover:bg-neutral-100 dark:hover:bg-slate-800">
             Logout
           </Button>
         </div>
         
-        <div className="p-4 flex-1">
+        <div className="p-4 flex-1 overflow-y-auto bg-white dark:bg-slate-900">
           <h2 className="text-sm font-semibold text-slate-500 mb-3 uppercase tracking-wider">Mulai Percakapan Baru</h2>
           <form onSubmit={handleStartChat} className="flex space-x-2">
              <Input 
                 placeholder="Username teman..."
                 value={recipientId}
                 onChange={(e) => setRecipientId(e.target.value)}
-                className="flex-1 rounded-lg"
+                className="flex-1 rounded-lg bg-slate-50 dark:bg-slate-800 border-none focus-visible:ring-0"
              />
              <Button type="submit" variant="secondary" className="rounded-lg">Chat</Button>
           </form>
@@ -232,8 +250,8 @@ export default function ChatPage() {
           {activeChat && !chatPartners.includes(activeChat) && (
             <div className="mt-8">
                <h2 className="text-sm font-semibold text-slate-500 mb-3 uppercase tracking-wider">Chat Aktif</h2>
-               <div className="flex items-center p-3 cursor-pointer rounded-lg bg-indigo-100 dark:bg-indigo-900/30 border border-indigo-200 dark:border-indigo-800">
-                    <Avatar className="h-10 w-10 border-2 border-white shadow-sm">
+               <div className="flex items-center p-3 cursor-pointer rounded-lg bg-indigo-50 dark:bg-indigo-900/20">
+                    <Avatar className="h-10 w-10">
                         <AvatarFallback className="bg-purple-600 text-white">
                             {activeChat.substring(0, 2).toUpperCase()}
                         </AvatarFallback>
@@ -251,22 +269,23 @@ export default function ChatPage() {
 
           <div className="mt-8">
             <h2 className="text-sm font-semibold text-slate-500 mb-3 uppercase tracking-wider">Riwayat Chat</h2>
-            <div className="space-y-2">
+            <div className="space-y-1">
               {chatPartners.map((partner) => (
                 <div 
                   key={partner}
                   onClick={() => {
                     setMessages([]);
+                    prevMsgCount.current = 0;
                     setActiveChat(partner);
                   }}
                   className={`flex items-center p-3 cursor-pointer rounded-lg transition-all ${
                     activeChat === partner 
-                      ? "bg-indigo-100 dark:bg-indigo-900/40 border border-indigo-200 dark:border-indigo-800" 
-                      : "hover:bg-slate-50 dark:hover:bg-slate-800/50 border border-transparent"
+                      ? "bg-slate-100 dark:bg-slate-800" 
+                      : "hover:bg-slate-50 dark:hover:bg-slate-800/40"
                   }`}
                 >
                   <Avatar className="h-10 w-10">
-                    <AvatarFallback className={activeChat === partner ? "bg-indigo-600 text-white" : "bg-slate-200 text-slate-600"}>
+                    <AvatarFallback className={activeChat === partner ? "bg-indigo-600 text-white" : "bg-slate-200 dark:bg-slate-700 text-slate-600 dark:text-slate-300"}>
                       {partner.substring(0, 2).toUpperCase()}
                     </AvatarFallback>
                   </Avatar>
@@ -289,7 +308,7 @@ export default function ChatPage() {
       <div className="flex-1 flex flex-col bg-slate-50 dark:bg-slate-950">
         {activeChat ? (
           <>
-            <div className="p-4 border-b border-slate-200 dark:border-slate-800 flex items-center bg-white dark:bg-slate-900 shadow-sm z-10">
+            <div className="p-4 flex items-center bg-white dark:bg-slate-900 z-10">
               <Avatar className="h-10 w-10">
                 <AvatarFallback className="bg-purple-600 text-white">
                   {activeChat.substring(0, 2).toUpperCase()}
@@ -300,7 +319,7 @@ export default function ChatPage() {
               </div>
             </div>
 
-            <div className="flex-1 p-4 bg-slate-50 dark:bg-slate-950/50" ref={scrollRef}>
+            <div className="flex-1 p-4 bg-slate-50 dark:bg-slate-950/50 overflow-y-auto scroll-smooth" ref={scrollRef}>
               <div className="flex flex-col space-y-4 pb-4">
                 {messages.map((m) => {
                   const isMe = m.senderId === currentUser;
@@ -321,7 +340,7 @@ export default function ChatPage() {
                                variant="ghost" 
                                size="sm" 
                                onClick={() => handleDeleteMessage(m.id!)}
-                               className="h-7 w-7 p-0 text-slate-400 hover:text-red-500 hover:bg-red-50 opacity-0 group-hover:opacity-100 transition-opacity rounded-full shadow-sm bg-white"
+                               className="h-7 w-7 p-0 text-slate-400 hover:text-red-500 hover:bg-red-50 opacity-0 group-hover:opacity-100 transition-opacity rounded-full bg-white dark:bg-slate-800"
                                title="Hapus Pesan"
                              >
                                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/><line x1="10" y1="11" x2="10" y2="17"/><line x1="14" y1="11" x2="14" y2="17"/></svg>
@@ -330,8 +349,8 @@ export default function ChatPage() {
 
                           <div className={`rounded-2xl px-4 py-2 ${
                             isMe 
-                              ? 'bg-indigo-600 text-white rounded-tr-none shadow-md' 
-                              : 'bg-white border border-slate-200 dark:bg-slate-800 dark:border-slate-700 text-slate-800 dark:text-slate-100 rounded-tl-none shadow-sm'
+                              ? 'bg-indigo-600 text-white rounded-tr-none' 
+                              : 'bg-slate-200 dark:bg-slate-800 text-slate-800 dark:text-slate-100 rounded-tl-none'
                           }`}>
                             <p className="text-[15px] leading-relaxed break-words">{m.content}</p>
                             <p className={`text-[10px] mt-1 text-right leading-none ${isMe ? 'text-indigo-200' : 'text-slate-400'}`}>
@@ -344,7 +363,7 @@ export default function ChatPage() {
                                variant="ghost" 
                                size="sm" 
                                onClick={() => handleDeleteMessage(m.id!)}
-                               className="h-7 w-7 p-0 text-slate-400 hover:text-red-500 hover:bg-red-50 opacity-0 group-hover:opacity-100 transition-opacity rounded-full shadow-sm bg-white"
+                               className="h-7 w-7 p-0 text-slate-400 hover:text-red-500 hover:bg-neutral-100 dark:hover:bg-slate-800 opacity-0 group-hover:opacity-100 transition-opacity rounded-full bg-white dark:bg-slate-800"
                                title="Hapus Pesan"
                              >
                                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/><line x1="10" y1="11" x2="10" y2="17"/><line x1="14" y1="11" x2="14" y2="17"/></svg>
@@ -368,23 +387,28 @@ export default function ChatPage() {
               </div>
             </div>
 
-            <div className="p-4 bg-white dark:bg-slate-900 border-t border-slate-200 dark:border-slate-800">
-              <form onSubmit={handleSendMessage} className="flex space-x-2">
+            <div className="p-4 bg-slate-100 dark:bg-slate-900">
+              <form onSubmit={handleSendMessage} className="flex items-center space-x-2">
                 <Input
+                  ref={inputRef}
                   value={inputText}
                   onChange={(e) => setInputText(e.target.value)}
                   placeholder="Ketik pesan Anda..."
-                  className="flex-1 rounded-full px-5 bg-slate-100 dark:bg-slate-800 border-transparent focus-visible:ring-indigo-500 focus-visible:border-transparent"
+                  className="flex-1 h-12 rounded-full px-5 bg-white dark:bg-slate-800 border-none focus-visible:ring-0"
                 />
-                <Button type="submit" disabled={!inputText.trim()} className="rounded-full w-12 h-12 p-0 bg-indigo-600 hover:bg-indigo-700 shadow-md">
-                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-5 h-5 ml-1"><path d="M22 2L11 13"/><path d="M22 2l-7 20-4-9-9-4 20-7z"/></svg>
+                <Button 
+                  type="submit" 
+                  disabled={!inputText.trim()} 
+                  className="rounded-full w-12 h-12 p-0 bg-indigo-600 hover:bg-indigo-700 flex-shrink-0 flex items-center justify-center transition-transform active:scale-95"
+                >
+                  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-5 h-5 relative"><path d="M22 2L11 13"/><path d="M22 2l-7 20-4-9-9-4 20-7z"/></svg>
                 </Button>
               </form>
             </div>
           </>
         ) : (
           <div className="flex-1 flex flex-col items-center justify-center text-slate-400">
-            <div className="bg-white p-6 rounded-full shadow-sm mb-4">
+            <div className="bg-slate-100 dark:bg-slate-800 p-6 rounded-full mb-4">
                 <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className="text-indigo-400"><path d="M12 22c5.523 0 10-4.477 10-10S17.523 2 12 2 2 6.477 2 12c0 1.821.487 3.53 1.338 5L2.5 21.5l4.5-.838A9.955 9.955 0 0 0 12 22z"/></svg>
             </div>
             <h3 className="text-xl font-medium text-slate-600 dark:text-slate-300 mb-2">Spring Chat</h3>
