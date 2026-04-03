@@ -28,15 +28,16 @@ class StompService {
 
     // Detect if we should use WSS (WebSocket over SSL)
     const isHttps = STOMP_ENDPOINT.startsWith('https');
-    const wsUrl = STOMP_ENDPOINT.replace('http', 'ws');
+    let wsUrl = STOMP_ENDPOINT.replace('http', 'ws');
+    
+    // Tambahkan query parameter untuk bypass ngrok pada koneksi WebSocket langsung
+    wsUrl += (wsUrl.includes('?') ? '&' : '?') + 'ngrok-skip-browser-warning=true';
 
     this.client = new Client({
-      // Prefer direct WebSocket if using HTTPS for better tunnel compatibility
       brokerURL: wsUrl,
       connectHeaders: {
           'ngrok-skip-browser-warning': 'true',
       },
-      // If direct websocket fails, try SockJS factory
       webSocketFactory: () => {
           return new (SockJS as any)(STOMP_ENDPOINT, null, {
             headers: {
