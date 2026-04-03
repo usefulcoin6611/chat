@@ -29,7 +29,7 @@ export default function Home() {
             Discapp
           </CardTitle>
           <p className="text-slate-500 dark:text-slate-400 text-lg font-normal">
-            Kirim pesan secara cepat dan aman.
+            Fast, simple, and secure messaging.
           </p>
         </CardHeader>
 
@@ -41,7 +41,7 @@ export default function Home() {
               </label>
               <Input
                 type="text"
-                placeholder="Masukkan username Anda"
+                placeholder="Enter your username"
                 value={username}
                 onChange={(e) => setUsername(e.target.value)}
                 className="w-full text-lg h-16 rounded-2xl bg-slate-100 dark:bg-slate-800 border-none focus:ring-2 focus:ring-indigo-500 transition-all placeholder:text-slate-400"
@@ -49,7 +49,7 @@ export default function Home() {
               />
             </div>
             <Button type="submit" className="w-full h-16 text-xl font-bold rounded-2xl bg-indigo-600 hover:bg-indigo-700 transition-all active:scale-95 text-white">
-              Masuk Sekarang
+              Get Started
             </Button>
           </form>
 

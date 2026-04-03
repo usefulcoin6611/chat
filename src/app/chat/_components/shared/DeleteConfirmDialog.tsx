@@ -24,18 +24,18 @@ export function DeleteConfirmDialog({
     <AlertDialog open={isOpen} onOpenChange={onOpenChange}>
       <AlertDialogContent className="bg-white dark:bg-slate-900 border-none">
         <AlertDialogHeader>
-          <AlertDialogTitle>Hapus Pesan?</AlertDialogTitle>
+          <AlertDialogTitle>Delete Message?</AlertDialogTitle>
           <AlertDialogDescription>
-            Tindakan ini tidak dapat dibatalkan. Pesan akan dihapus secara permanen dari percakapan ini.
+            This action cannot be undone. The message will be permanently deleted.
           </AlertDialogDescription>
         </AlertDialogHeader>
         <AlertDialogFooter>
-          <AlertDialogCancel className="border-none bg-slate-100 dark:bg-slate-800">Batal</AlertDialogCancel>
+          <AlertDialogCancel className="border-none bg-slate-100 dark:bg-slate-800">Cancel</AlertDialogCancel>
           <AlertDialogAction 
             onClick={onConfirm}
             className="bg-red-500 hover:bg-red-600 border-none"
           >
-            Hapus
+            Delete
           </AlertDialogAction>
         </AlertDialogFooter>
       </AlertDialogContent>

@@ -115,7 +115,7 @@ export function ChatInput({
                 type="button" 
                 onClick={cancelRecording}
                 className="text-slate-500 hover:text-red-500 transition-colors p-2 cursor-pointer shrink-0"
-                title="Batalkan Rekaman"
+                title="Cancel Recording"
               >
                  <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/><line x1="10" y1="11" x2="10" y2="17"/><line x1="14" y1="11" x2="14" y2="17"/></svg>
               </button>
@@ -159,7 +159,7 @@ export function ChatInput({
             value={inputText}
             onChange={(e: React.ChangeEvent<HTMLInputElement>) => setInputText(e.target.value)}
             onPaste={handlePaste}
-            placeholder="Ketik pesan..."
+            placeholder="Type a message..."
             disabled={isRecording}
             className="flex-1 border-none focus-visible:ring-0 bg-transparent text-lg placeholder:text-slate-400"
           />
@@ -172,7 +172,7 @@ export function ChatInput({
             disabled={isUploading || isRecording}
             className="rounded-full w-10 h-10 p-0 text-slate-400 hover:text-indigo-600 cursor-pointer transition-colors"
             onClick={() => fileInputRef.current?.click()}
-            title="Pilih Gambar"
+            title="Attach Image"
           >
             <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m21.44 11.05-9.19 9.19a6 6 0 0 1-8.49-8.49l8.57-8.57A4 4 0 1 1 18 8.84l-8.59 8.51a2 2 0 0 1-2.83-2.83l8.49-8.48"/></svg>
           </Button>

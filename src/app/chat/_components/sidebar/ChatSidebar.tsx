@@ -62,15 +62,15 @@ export function ChatSidebar({
       <div className={`p-4 flex-1 overflow-y-auto bg-white dark:bg-slate-900 custom-scrollbar ${isCollapsed ? 'px-2' : ''}`}>
         {!isCollapsed && (
             <>
-                <h2 className="text-[11px] font-bold text-slate-400 mb-3 uppercase tracking-[0.1em]">Mulai Percakapan Baru</h2>
+                <h2 className="text-[11px] font-bold text-slate-400 mb-3 uppercase tracking-[0.1em]">New Conversation</h2>
                 <form onSubmit={handleStartChat} className="flex space-x-2 mb-8">
                 <Input 
-                    placeholder="Username teman..."
+                    placeholder="Friend's username..."
                     value={recipientId}
                     onChange={(e: React.ChangeEvent<HTMLInputElement>) => setRecipientId(e.target.value)}
                     className="flex-1 rounded-xl bg-slate-50 dark:bg-slate-800 border-none focus-visible:ring-1 focus-visible:ring-indigo-500/30 h-10"
                 />
-                <Button type="submit" variant="secondary" className="rounded-xl h-10 px-4 bg-indigo-50 dark:bg-indigo-900/30 text-indigo-600 hover:bg-indigo-100 transition-all">Chat</Button>
+                <Button type="submit" className="rounded-xl h-10 px-6 bg-indigo-600 text-white border-none hover:bg-indigo-700 shadow-md hover:shadow-indigo-500/30 active:scale-95 transition-all duration-200">Chat</Button>
                 </form>
             </>
         )}
@@ -81,9 +81,9 @@ export function ChatSidebar({
 
         {activeChat && !chatPartners.includes(activeChat) && (
           <div className="mb-8">
-             {!isCollapsed && <h2 className="text-[11px] font-bold text-slate-400 mb-3 uppercase tracking-[0.1em]">Chat Aktif</h2>}
+             {!isCollapsed && <h2 className="text-[11px] font-bold text-slate-400 mb-3 uppercase tracking-[0.1em]">Active Chat</h2>}
              <div 
-                className={`flex items-center p-3 cursor-pointer rounded-xl bg-indigo-600 shadow-lg shadow-indigo-200 dark:shadow-none ${isCollapsed ? 'justify-center' : ''}`}
+                className={`flex items-center p-3 cursor-pointer rounded-xl bg-indigo-600 shadow-lg shadow-indigo-200 dark:shadow-none active:scale-[0.99] transition-all ${isCollapsed ? 'justify-center' : ''}`}
                 title={activeChat}
              >
                   <Avatar className="h-10 w-10 shrink-0 border-2 border-white/20">
@@ -105,7 +105,7 @@ export function ChatSidebar({
         )}
 
         <div className="mt-2">
-          {!isCollapsed && <h2 className="text-[11px] font-bold text-slate-400 mb-3 uppercase tracking-[0.1em]">Riwayat Chat</h2>}
+          {!isCollapsed && <h2 className="text-[11px] font-bold text-slate-400 mb-3 uppercase tracking-[0.1em]">Recent Chats</h2>}
           <div className="space-y-2">
             {chatPartners.map((partner) => (
               <div 
@@ -115,7 +115,7 @@ export function ChatSidebar({
                 className={`flex items-center group p-3 cursor-pointer rounded-xl transition-all relative ${
                   activeChat === partner 
                     ? "bg-slate-100 dark:bg-slate-800 shadow-sm" 
-                    : "hover:bg-slate-50 dark:hover:bg-slate-800/40"
+                    : "hover:bg-indigo-50/80 dark:hover:bg-indigo-900/20 hover:translate-x-1"
                 } ${isCollapsed ? 'justify-center' : ''}`}
               >
                 <Avatar className={`h-10 w-10 shrink-0 transition-transform group-hover:scale-105 ${activeChat === partner ? 'ring-2 ring-indigo-500 ring-offset-2 dark:ring-offset-slate-900' : ''}`}>
@@ -136,7 +136,7 @@ export function ChatSidebar({
                           </span>
                         )}
                       </div>
-                      <p className="text-[11px] text-slate-400 truncate mt-0.5">Klik untuk melihat pesan</p>
+                      <p className="text-[11px] text-slate-400 truncate mt-0.5">Tap to open</p>
                     </div>
                 )}
 
@@ -150,7 +150,7 @@ export function ChatSidebar({
                   <div className="bg-slate-50 dark:bg-slate-800/40 rounded-full w-12 h-12 flex items-center justify-center mx-auto mb-3">
                     <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-slate-300"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
                   </div>
-                  <p className="text-xs text-slate-400">Belum ada riwayat chat.</p>
+                  <p className="text-xs text-slate-400">No conversations yet.</p>
               </div>
             )}
           </div>

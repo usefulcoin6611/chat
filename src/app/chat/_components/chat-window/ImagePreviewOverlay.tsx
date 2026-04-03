@@ -22,8 +22,8 @@ export function ImagePreviewOverlay({
                 <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3Z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" x2="12" y1="19" y2="22"/></svg>
             </div>
             <div className="text-center">
-               <h4 className="font-bold text-xl text-slate-800 dark:text-slate-100 mb-1">Pratinjau Pesan Suara</h4>
-               <p className="text-sm text-slate-500 dark:text-slate-400">Silakan dengarkan kembali sebelum Anda mengirimkan pesan ini.</p>
+               <h4 className="font-bold text-xl text-slate-800 dark:text-slate-100 mb-1">Voice Message Preview</h4>
+               <p className="text-sm text-slate-500 dark:text-slate-400">Listen back before sending.</p>
             </div>
             <div className="w-full bg-slate-50 dark:bg-slate-800/50 p-4 rounded-2xl border dark:border-slate-700">
                 <audio src={previewUrl} controls className="w-full h-10 dark:invert dark:filter dark:brightness-125" />
@@ -40,7 +40,7 @@ export function ImagePreviewOverlay({
         <button 
           onClick={cancelPreview}
           className="absolute -top-4 -right-4 bg-red-500 text-white rounded-full p-2.5 shadow-lg hover:bg-red-600 transition-all active:scale-90 cursor-pointer z-10 border-2 border-white dark:border-slate-900"
-          title="Batalkan"
+          title="Cancel"
         >
           <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
         </button>
@@ -56,14 +56,14 @@ export function ImagePreviewOverlay({
             <img src={previewUrl} alt="Thumb" className="w-full h-full object-cover rounded-lg" />
           )}
           <div className="absolute inset-0 bg-black/40 text-white text-[10px] flex items-end justify-center pb-1 opacity-0 group-hover/thumb:opacity-100 transition-opacity font-bold">
-            AKTIF
+            SELECTED
           </div>
         </div>
         {!isAudio && (
             <button 
                 onClick={() => fileInputRef.current?.click()}
                 className="w-16 h-16 rounded-xl flex items-center justify-center text-slate-400 hover:text-indigo-500 transition-all bg-white dark:bg-slate-800 shadow-md hover:shadow-lg cursor-pointer border border-slate-100 dark:border-slate-700"
-                title="Ganti Foto"
+                title="Change Photo"
             >
                 <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M5 12h14"/><path d="M12 5v14"/></svg>
             </button>
