@@ -56,6 +56,10 @@ export default function ChatPage() {
           isRecording={chat.isRecording}
           startRecording={chat.startRecording}
           stopRecording={chat.stopRecording}
+          cancelRecording={chat.cancelRecording}
+          mediaStream={chat.mediaStream}
+          recordingTime={chat.recordingTime}
+          formatTime={chat.formatTime}
         />
       </div>
 

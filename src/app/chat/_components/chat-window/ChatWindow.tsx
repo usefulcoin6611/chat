@@ -30,7 +30,11 @@ export function ChatWindow({
     onBack,
     isRecording,
     startRecording,
-    stopRecording
+    stopRecording,
+    cancelRecording,
+    mediaStream,
+    recordingTime,
+    formatTime
 }: ChatWindowProps) {
 
   if (!activeChat) {
@@ -88,6 +92,10 @@ export function ChatWindow({
               isRecording={isRecording}
               startRecording={startRecording}
               stopRecording={stopRecording}
+              cancelRecording={cancelRecording}
+              mediaStream={mediaStream}
+              recordingTime={recordingTime}
+              formatTime={formatTime}
             />
         </div>
     </div>

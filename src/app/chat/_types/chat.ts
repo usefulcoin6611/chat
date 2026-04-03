@@ -69,6 +69,10 @@ export interface ChatInputProps {
   isRecording: boolean;
   startRecording: () => void;
   stopRecording: () => void;
+  cancelRecording: () => void;
+  mediaStream: MediaStream | null;
+  recordingTime: number;
+  formatTime: (val: number) => string;
 }
 
 export interface ChatWindowProps extends ChatHeaderProps, MessageListProps, ImagePreviewOverlayProps, ChatInputProps {}

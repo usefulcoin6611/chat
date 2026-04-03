@@ -28,10 +28,34 @@ export function useChat() {
   const [isRecording, setIsRecording] = useState(false);
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
   const audioChunksRef = useRef<Blob[]>([]);
+  const audioStreamRef = useRef<MediaStream | null>(null);
+
+  const [mediaStream, setMediaStream] = useState<MediaStream | null>(null);
+  const [recordingTime, setRecordingTime] = useState(0);
+
+  useEffect(() => {
+    let interval: NodeJS.Timeout;
+    if (isRecording) {
+      setRecordingTime(0);
+      interval = setInterval(() => {
+        setRecordingTime(prev => prev + 1);
+      }, 1000);
+    }
+    return () => {
+      if (interval) clearInterval(interval);
+    };
+  }, [isRecording]);
+
+  const formatTime = (seconds: number) => {
+    const min = Math.floor(seconds / 60);
+    const sec = seconds % 60;
+    return `${min}:${sec.toString().padStart(2, '0')}`;
+  };
 
   const startRecording = async () => {
     try {
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      setMediaStream(stream);
       const mediaRecorder = new MediaRecorder(stream);
       mediaRecorderRef.current = mediaRecorder;
       audioChunksRef.current = [];
@@ -53,13 +77,13 @@ export function useChat() {
 
         // Stop all tracks to release microphone
         stream.getTracks().forEach(track => track.stop());
+        setMediaStream(null);
       };
 
       mediaRecorder.start();
       setIsRecording(true);
     } catch (err) {
-      console.error("Error accessing microphone", err);
-      alert("Tidak dapat mengakses mikrofon.");
+      console.error("Error starting recording:", err);
     }
   };
 
@@ -67,6 +91,25 @@ export function useChat() {
     if (mediaRecorderRef.current && isRecording) {
       mediaRecorderRef.current.stop();
       setIsRecording(false);
+    }
+  };
+
+  const cancelRecording = () => {
+    if (mediaRecorderRef.current && isRecording) {
+      // Temporarily remove onstop to avoid triggering preview
+      const originalOnStop = mediaRecorderRef.current.onstop;
+      mediaRecorderRef.current.onstop = () => {
+        if (mediaStream) {
+           mediaStream.getTracks().forEach(track => track.stop());
+           setMediaStream(null);
+        }
+      };
+      
+      mediaRecorderRef.current.stop();
+      setIsRecording(false);
+      
+      // Cleanup for future recordings
+      mediaRecorderRef.current = null;
     }
   };
 
@@ -392,6 +435,10 @@ export function useChat() {
     logout,
     isRecording,
     startRecording,
-    stopRecording
+    stopRecording,
+    cancelRecording,
+    mediaStream,
+    recordingTime,
+    formatTime
   };
 }
