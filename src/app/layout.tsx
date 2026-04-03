@@ -8,8 +8,8 @@ const inter = Inter({
 });
 
 export const metadata: Metadata = {
-  title: "Spring Boot Chat App",
-  description: "Real-time chat application with Spring Boot and Next.js",
+  title: "Discapp",
+  description: "Real-time communication with Discapp",
 };
 
 export default function RootLayout({

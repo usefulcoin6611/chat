@@ -60,6 +60,7 @@ export interface ChatInputProps {
   handlePaste: (e: React.ClipboardEvent) => void;
   fileInputRef: React.RefObject<HTMLInputElement | null>;
   handleFileUpload: (e: React.ChangeEvent<HTMLInputElement>) => void;
+  handleDrop: (e: React.DragEvent) => void;
   isUploading: boolean;
   previewUrl: string | null;
   previewFile: File | null;

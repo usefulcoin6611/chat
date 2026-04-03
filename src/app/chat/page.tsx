@@ -45,6 +45,7 @@ export default function ChatPage() {
           fileInputRef={chat.fileInputRef}
           handleFileUpload={chat.handleFileUpload}
           handlePaste={chat.handlePaste}
+          handleDrop={chat.handleDrop}
           previewFile={chat.previewFile}
           previewUrl={chat.previewUrl}
           cancelPreview={chat.cancelPreview}

@@ -376,6 +376,16 @@ export function useChat() {
     }
   };
 
+  const handleDrop = (e: React.DragEvent) => {
+    e.preventDefault();
+    const file = e.dataTransfer.files?.[0];
+    if (file && (file.type.startsWith('image/') || file.type.startsWith('audio/'))) {
+        setPreviewFile(file);
+        const url = URL.createObjectURL(file);
+        setPreviewUrl(url);
+    }
+  };
+
   const cancelPreview = () => {
     if (previewUrl) URL.revokeObjectURL(previewUrl);
     setPreviewFile(null);
@@ -426,6 +436,7 @@ export function useChat() {
     handleEmojiClick,
     handleFileUpload,
     handlePaste,
+    handleDrop,
     previewFile,
     previewUrl,
     isSidebarCollapsed,

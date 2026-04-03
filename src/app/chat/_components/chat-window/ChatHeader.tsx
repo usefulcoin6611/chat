@@ -23,10 +23,6 @@ export function ChatHeader({ activeChat, isDarkMode, toggleTheme, onBack }: Chat
         </Avatar>
         <div className="ml-3">
           <h3 className="font-bold text-lg text-slate-800 dark:text-slate-100 tracking-tight">{activeChat}</h3>
-          <p className="text-[10px] text-green-500 flex items-center font-medium mt-0.5 animate-pulse">
-             <span className="w-1.5 h-1.5 rounded-full bg-green-500 mr-1.5"></span>
-             Terhubung
-          </p>
         </div>
       </div>
       
