@@ -66,6 +66,9 @@ export interface ChatInputProps {
   sendPreview: () => void;
   inputRef: React.RefObject<HTMLInputElement | null>;
   EmojiPicker: React.ComponentType<any>;
+  isRecording: boolean;
+  startRecording: () => void;
+  stopRecording: () => void;
 }
 
 export interface ChatWindowProps extends ChatHeaderProps, MessageListProps, ImagePreviewOverlayProps, ChatInputProps {}

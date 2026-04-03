@@ -22,40 +22,41 @@ export function ChatSidebar({
 
   return (
     <div className={`${sidebarWidthClass} transition-all duration-300 ease-in-out bg-white dark:bg-slate-900 flex flex-col border-r dark:border-slate-800 relative z-40 h-full`}>
-      <div className={`h-18 p-4 flex items-center justify-between bg-slate-50 dark:bg-slate-800/50 border-b dark:border-slate-800 shrink-0 transition-all`}>
-        <div className="flex items-center space-x-3 overflow-hidden">
+      <div className={`h-[72px] p-4 flex items-center bg-slate-50 dark:bg-slate-800/50 border-b dark:border-slate-800 shrink-0 transition-all ${isCollapsed ? 'justify-center' : 'justify-between'}`}>
+        <div className={`flex items-center space-x-3 overflow-hidden ${isCollapsed ? 'hidden' : 'flex'}`}>
           <Avatar className="h-10 w-10 shrink-0 ring-2 ring-indigo-500/20">
             <AvatarFallback className="bg-indigo-600 text-white font-bold">
               {currentUser.substring(0, 2).toUpperCase()}
             </AvatarFallback>
           </Avatar>
-          {!isCollapsed && <span className="font-bold text-slate-800 dark:text-slate-100 truncate max-w-[120px]">{currentUser}</span>}
+          <span className="font-bold text-slate-800 dark:text-slate-100 truncate max-w-[120px]">{currentUser}</span>
         </div>
+
+        {isCollapsed && (
+          <div className="flex flex-col items-center justify-center space-y-1">
+             <Button 
+                variant="ghost" 
+                size="sm" 
+                onClick={toggleSidebar} 
+                className="h-10 w-10 p-0 hover:bg-indigo-50 dark:hover:bg-indigo-900/20 text-indigo-600 bg-white dark:bg-slate-800 shadow-sm border border-slate-200 dark:border-slate-700 rounded-xl"
+                title="Expand Sidebar"
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="m9 18 6-6-6-6"/></svg>
+              </Button>
+          </div>
+        )}
         
-        <div className="flex items-center">
-            {!isCollapsed && (
-                <Button 
-                    variant="ghost" 
-                    size="sm" 
-                    onClick={toggleSidebar} 
-                    className="h-8 w-8 p-0 hover:bg-indigo-50 dark:hover:bg-indigo-900/20 text-slate-500 rounded-full"
-                    title="Collapse Sidebar"
-                >
-                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m15 18-6-6 6-6"/></svg>
-                </Button>
-            )}
-            {isCollapsed && (
-                <Button 
-                    variant="ghost" 
-                    size="sm" 
-                    onClick={toggleSidebar} 
-                    className="absolute -right-3 top-1/2 -translate-y-1/2 h-6 w-6 p-0 bg-white dark:bg-slate-800 border shadow-sm hover:bg-indigo-50 dark:hover:bg-indigo-900/40 text-slate-500 rounded-full z-50 flex items-center justify-center md:flex hidden"
-                    title="Expand Sidebar"
-                >
-                    <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="m9 18 6-6-6-6"/></svg>
-                </Button>
-            )}
-        </div>
+        {!isCollapsed && (
+            <Button 
+                variant="ghost" 
+                size="sm" 
+                onClick={toggleSidebar} 
+                className="h-8 w-8 p-0 hover:bg-indigo-50 dark:hover:bg-indigo-900/20 text-slate-500 rounded-full"
+                title="Collapse Sidebar"
+            >
+                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m15 18-6-6 6-6"/></svg>
+            </Button>
+        )}
       </div>
       
       <div className={`p-4 flex-1 overflow-y-auto bg-white dark:bg-slate-900 custom-scrollbar ${isCollapsed ? 'px-2' : ''}`}>

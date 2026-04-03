@@ -53,6 +53,9 @@ export default function ChatPage() {
           inputRef={chat.inputRef}
           EmojiPicker={EmojiPicker}
           onBack={() => chat.setActiveChat("")}
+          isRecording={chat.isRecording}
+          startRecording={chat.startRecording}
+          stopRecording={chat.stopRecording}
         />
       </div>
 

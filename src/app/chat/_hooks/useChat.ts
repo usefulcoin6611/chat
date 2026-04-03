@@ -25,6 +25,62 @@ export function useChat() {
   const [previewFile, setPreviewFile] = useState<File | null>(null);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
+  const [isRecording, setIsRecording] = useState(false);
+  const mediaRecorderRef = useRef<MediaRecorder | null>(null);
+  const audioChunksRef = useRef<Blob[]>([]);
+
+  const startRecording = async () => {
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      const mediaRecorder = new MediaRecorder(stream);
+      mediaRecorderRef.current = mediaRecorder;
+      audioChunksRef.current = [];
+
+      mediaRecorder.ondataavailable = (event) => {
+        if (event.data.size > 0) {
+          audioChunksRef.current.push(event.data);
+        }
+      };
+
+      mediaRecorder.onstop = async () => {
+        const audioBlob = new Blob(audioChunksRef.current, { type: 'audio/webm' });
+        const file = new File([audioBlob], `audio-recording-${Date.now()}.webm`, { type: 'audio/webm' });
+        
+        // Use existing upload logic
+        setIsUploading(true);
+        try {
+          const blob = await chatService.uploadToBlob(file);
+          const chatMessage: ChatMessage = {
+              senderId: currentUser,
+              recipientId: activeChat,
+              content: blob.url,
+          };
+          await chatService.sendMessage(chatMessage);
+          loadChatHistory(currentUser, activeChat);
+        } catch (err) {
+          console.error('Failed to upload voice message', err);
+        } finally {
+          setIsUploading(false);
+        }
+
+        // Stop all tracks to release microphone
+        stream.getTracks().forEach(track => track.stop());
+      };
+
+      mediaRecorder.start();
+      setIsRecording(true);
+    } catch (err) {
+      console.error("Error accessing microphone", err);
+      alert("Tidak dapat mengakses mikrofon.");
+    }
+  };
+
+  const stopRecording = () => {
+    if (mediaRecorderRef.current && isRecording) {
+      mediaRecorderRef.current.stop();
+      setIsRecording(false);
+    }
+  };
 
   // Theme initialization
   useEffect(() => {
@@ -345,6 +401,9 @@ export function useChat() {
     toggleSidebar,
     cancelPreview,
     sendPreview,
-    logout
+    logout,
+    isRecording,
+    startRecording,
+    stopRecording
   };
 }

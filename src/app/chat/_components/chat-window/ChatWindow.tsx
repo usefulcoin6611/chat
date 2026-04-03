@@ -27,7 +27,10 @@ export function ChatWindow({
     isUploading,
     inputRef,
     EmojiPicker,
-    onBack
+    onBack,
+    isRecording,
+    startRecording,
+    stopRecording
 }: ChatWindowProps) {
 
   if (!activeChat) {
@@ -82,6 +85,9 @@ export function ChatWindow({
               sendPreview={sendPreview} 
               inputRef={inputRef} 
               EmojiPicker={EmojiPicker} 
+              isRecording={isRecording}
+              startRecording={startRecording}
+              stopRecording={stopRecording}
             />
         </div>
     </div>
