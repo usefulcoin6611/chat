@@ -42,8 +42,12 @@ export default function ChatPage() {
   const [inputText, setInputText] = useState("");
   const scrollRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
   const prevMsgCount = useRef<number>(0);
   const audioRef = useRef<HTMLAudioElement | null>(null);
+  const [isUploading, setIsUploading] = useState(false);
+  const [unreadCounts, setUnreadCounts] = useState<Record<string, number>>({});
+  const [lastReadTimestamps, setLastReadTimestamps] = useState<Record<string, number>>({});
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [msgToDelete, setMsgToDelete] = useState<string | null>(null);
   
@@ -53,7 +57,15 @@ export default function ChatPage() {
       router.push("/");
       return;
     }
+    
     setCurrentUser(user);
+    loadChatPartners(user);
+
+    // Load last read timestamps from local storage
+    const savedTimestamps = localStorage.getItem(`chat_read_times_${user}`);
+    if (savedTimestamps) {
+      setLastReadTimestamps(JSON.parse(savedTimestamps));
+    }
 
     // Initialize audio notification
     audioRef.current = new Audio('https://assets.mixkit.co/active_storage/sfx/2358/2358-preview.mp3');
@@ -71,6 +83,15 @@ export default function ChatPage() {
   }, [messages, currentUser]);
 
   const markAsRead = async (senderUser: string, recipientUser: string) => {
+    // Front-end tracking: update last read timestamp
+    const now = Date.now();
+    const newTimestamps = { ...lastReadTimestamps, [senderUser]: now };
+    setLastReadTimestamps(newTimestamps);
+    localStorage.setItem(`chat_read_times_${recipientUser}`, JSON.stringify(newTimestamps));
+    
+    // Reset unread count locally
+    setUnreadCounts(prev => ({ ...prev, [senderUser]: 0 }));
+
     try {
       const baseUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080';
       await fetch(`${baseUrl}/api/chat/messages/read/${senderUser}/${recipientUser}`, {
@@ -119,10 +140,44 @@ export default function ChatPage() {
       if (res.ok) {
         const users: string[] = await res.json();
         setChatPartners(users);
+        
+        // Background check unread for ALL partners
+        if (currentUser) {
+            checkAllUnread(userId, users);
+        }
       }
     } catch (err) {
       console.error("Failed to load chat partners", err);
     }
+  };
+
+  const checkAllUnread = async (me: string, partners: string[]) => {
+    const counts: Record<string, number> = { ...unreadCounts };
+    const baseUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080';
+
+    for (const partner of partners) {
+      // Jangan cek unread untuk chat yang sedang dibuka
+      if (partner === activeChat) {
+          counts[partner] = 0;
+          continue;
+      }
+
+      try {
+        const res = await fetch(`${baseUrl}/api/chat/messages/${me}/${partner}`, {
+            headers: { 'ngrok-skip-browser-warning': 'true' },
+        });
+        if (res.ok) {
+          const msgs: ChatMessage[] = await res.json();
+          const lastRead = lastReadTimestamps[partner] || 0;
+          const unread = msgs.filter(m => 
+            m.senderId === partner && 
+            (m.timestamp ? new Date(m.timestamp).getTime() : 0) > lastRead
+          ).length;
+          counts[partner] = unread;
+        }
+      } catch (e) {}
+    }
+    setUnreadCounts(counts);
   };
 
   // Interval polling untuk daftar user (setiap 5 detik)
@@ -241,6 +296,56 @@ export default function ChatPage() {
     inputRef.current?.focus();
   };
 
+  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    setIsUploading(true);
+    try {
+      const response = await fetch(`/api/upload?filename=${encodeURIComponent(file.name)}`, {
+        method: 'POST',
+        body: file,
+      });
+
+      if (response.ok) {
+        const blob = await response.json();
+        // Langsung kirim URL gambar sebagai pesan
+        const chatMessage: ChatMessage = {
+           senderId: currentUser,
+           recipientId: activeChat,
+           content: blob.url,
+        };
+
+        const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080'}/api/chat/messages`, {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              "ngrok-skip-browser-warning": "true",
+            },
+            body: JSON.stringify(chatMessage),
+        });
+
+        if (res.ok) {
+            loadChatHistory(currentUser, activeChat);
+        }
+      }
+    } catch (err) {
+      console.error('Upload failed:', err);
+      alert("Gagal mengunggah gambar.");
+    } finally {
+      setIsUploading(false);
+      // Clear input file
+      if (fileInputRef.current) fileInputRef.current.value = "";
+    }
+  };
+
+  const isImageUrl = (url: string) => {
+    return url.startsWith('http') && (
+      url.match(/\.(jpg|jpeg|png|gif|webp|svg)$/i) || 
+      url.includes('public.blob.vercel-storage.com')
+    );
+  };
+
   const logout = () => {
     localStorage.removeItem("chat_username");
     router.push("/");
@@ -319,9 +424,16 @@ export default function ChatPage() {
                     </AvatarFallback>
                   </Avatar>
                   <div className="ml-3 flex-1 overflow-hidden">
-                    <p className={`text-sm font-medium truncate ${activeChat === partner ? "text-indigo-900 dark:text-indigo-100" : "text-slate-700 dark:text-slate-300"}`}>
-                      {partner}
-                    </p>
+                    <div className="flex items-center justify-between">
+                      <p className={`text-sm font-medium truncate ${activeChat === partner ? "text-indigo-900 dark:text-indigo-100" : "text-slate-700 dark:text-slate-300"}`}>
+                        {partner}
+                      </p>
+                      {unreadCounts[partner] > 0 && (
+                        <span className="bg-indigo-600 text-white text-[10px] font-bold px-1.5 py-0.5 rounded-full min-w-[18px] text-center">
+                          {unreadCounts[partner] > 99 ? '99+' : unreadCounts[partner]}
+                        </span>
+                      )}
+                    </div>
                   </div>
                 </div>
               ))}
@@ -376,13 +488,24 @@ export default function ChatPage() {
                              </Button>
                           )}
 
-                          <div className={`rounded-2xl px-4 py-2 ${
+                          <div className={`rounded-2xl ${
                             isMe 
                               ? 'bg-indigo-600 text-white rounded-tr-none' 
                               : 'bg-slate-200 dark:bg-slate-800 text-slate-800 dark:text-slate-100 rounded-tl-none'
-                          }`}>
-                            <p className="text-[15px] leading-relaxed break-words">{m.content}</p>
-                            <p className={`text-[10px] mt-1 text-right leading-none ${isMe ? 'text-indigo-200' : 'text-slate-400'}`}>
+                          } ${isImageUrl(m.content) ? 'p-1.5' : 'px-4 py-2'}`}>
+                            {isImageUrl(m.content) ? (
+                              <div className="overflow-hidden rounded-xl bg-black/5 dark:bg-black/20">
+                                <img 
+                                  src={m.content} 
+                                  alt="Shared Image" 
+                                  className="max-w-full sm:max-w-xs h-auto block object-cover hover:opacity-90 transition-opacity cursor-pointer"
+                                  onClick={() => window.open(m.content, '_blank')}
+                                />
+                              </div>
+                            ) : (
+                              <p className="text-[15px] leading-relaxed break-words">{m.content}</p>
+                            )}
+                            <p className={`text-[10px] mt-1 text-right leading-none ${isMe ? 'text-indigo-200' : 'text-slate-400'} ${isImageUrl(m.content) ? 'px-2 pb-1' : ''}`}>
                                {m.timestamp ? new Date(m.timestamp).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit', hour12: true}) : new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit', hour12: true})}
                             </p>
                           </div>
@@ -433,6 +556,30 @@ export default function ChatPage() {
                         />
                     </PopoverContent>
                 </Popover>
+
+                <input 
+                  type="file" 
+                  ref={fileInputRef} 
+                  className="hidden" 
+                  accept="image/*"
+                  onChange={handleFileUpload}
+                />
+
+                <Button
+                    type="button"
+                    variant="ghost" 
+                    size="sm"
+                    disabled={isUploading}
+                    className="rounded-full w-10 h-10 p-0 text-slate-500 hover:text-indigo-600 hover:bg-white dark:hover:bg-slate-800 flex-shrink-0 cursor-pointer"
+                    onClick={() => fileInputRef.current?.click()}
+                    title="Kirim Gambar"
+                >
+                    {isUploading ? (
+                        <div className="w-5 h-5 border-2 border-indigo-600/30 border-t-indigo-600 rounded-full animate-spin" />
+                    ) : (
+                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect width="18" height="18" x="3" y="3" rx="2" ry="2"/><circle cx="9" cy="9" r="2"/><path d="m21 15-3.086-3.086a2 2 0 0 0-2.828 0 L6 21"/></svg>
+                    )}
+                </Button>
 
                 <Input
                   ref={inputRef}
