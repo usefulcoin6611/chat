@@ -46,22 +46,10 @@ export function useChat() {
         const audioBlob = new Blob(audioChunksRef.current, { type: 'audio/webm' });
         const file = new File([audioBlob], `audio-recording-${Date.now()}.webm`, { type: 'audio/webm' });
         
-        // Use existing upload logic
-        setIsUploading(true);
-        try {
-          const blob = await chatService.uploadToBlob(file);
-          const chatMessage: ChatMessage = {
-              senderId: currentUser,
-              recipientId: activeChat,
-              content: blob.url,
-          };
-          await chatService.sendMessage(chatMessage);
-          loadChatHistory(currentUser, activeChat);
-        } catch (err) {
-          console.error('Failed to upload voice message', err);
-        } finally {
-          setIsUploading(false);
-        }
+        // Show preview instead of sending automatically
+        setPreviewFile(file);
+        const url = URL.createObjectURL(file);
+        setPreviewUrl(url);
 
         // Stop all tracks to release microphone
         stream.getTracks().forEach(track => track.stop());
