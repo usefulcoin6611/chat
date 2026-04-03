@@ -86,8 +86,17 @@ export default function ChatPage() {
       senderId: currentUser,
       recipientId: activeChat,
       content: inputText.trim(),
+      timestamp: new Date().toISOString(),
     };
 
+    if (!stompService.isConnected) {
+        alert("Koneksi belum terhubung ke server (CORS Error). Pesan tidak bisa dikirim.");
+        return;
+    }
+
+    // Optimistic update: Langsung munculkan di layar pengirim
+    setMessages((prev) => [...prev, chatMessage]);
+    
     stompService.sendMessage(chatMessage);
     setInputText("");
   };
