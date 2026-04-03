@@ -17,6 +17,10 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import dynamic from "next/dynamic";
+
+const EmojiPicker = dynamic(() => import("emoji-picker-react"), { ssr: false });
 
 
 export interface ChatMessage {
@@ -232,6 +236,11 @@ export default function ChatPage() {
     setIsDeleteDialogOpen(true);
   };
 
+  const handleEmojiClick = (emojiData: any) => {
+    setInputText((prev) => prev + emojiData.emoji);
+    inputRef.current?.focus();
+  };
+
   const logout = () => {
     localStorage.removeItem("chat_username");
     router.push("/");
@@ -407,8 +416,24 @@ export default function ChatPage() {
               </div>
             </div>
 
-            <div className="p-4 bg-slate-100 dark:bg-slate-900">
+            <div className="p-4 bg-slate-100 dark:bg-slate-900 overflow-visible">
               <form onSubmit={handleSendMessage} className="flex items-center space-x-2">
+                <Popover>
+                    <PopoverTrigger 
+                        className="rounded-full w-10 h-10 p-0 text-slate-500 hover:text-indigo-600 hover:bg-white dark:hover:bg-slate-800 flex-shrink-0 flex items-center justify-center transition-all cursor-pointer bg-transparent border-none outline-none"
+                        title="Emoticon"
+                    >
+                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><path d="M8 14s1.5 2 4 2 4-2 4-2"/><line x1="9" y1="9" x2="9.01" y2="9"/><line x1="15" y1="9" x2="15.01" y2="9"/></svg>
+                    </PopoverTrigger>
+                    <PopoverContent side="top" align="start" className="w-auto p-0 border-none shadow-xl bg-transparent mb-2">
+                        <EmojiPicker 
+                          onEmojiClick={handleEmojiClick} 
+                          theme={undefined} // Auto
+                          lazyLoadEmojis={true}
+                        />
+                    </PopoverContent>
+                </Popover>
+
                 <Input
                   ref={inputRef}
                   value={inputText}
