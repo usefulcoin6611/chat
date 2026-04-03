@@ -7,6 +7,16 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 
 
 export interface ChatMessage {
@@ -30,6 +40,8 @@ export default function ChatPage() {
   const inputRef = useRef<HTMLInputElement>(null);
   const prevMsgCount = useRef<number>(0);
   const audioRef = useRef<HTMLAudioElement | null>(null);
+  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
+  const [msgToDelete, setMsgToDelete] = useState<string | null>(null);
   
   useEffect(() => {
     const user = localStorage.getItem("chat_username");
@@ -191,12 +203,12 @@ export default function ChatPage() {
     }
   };
 
-  const handleDeleteMessage = async (messageId: string) => {
-    if (!confirm("Hapus pesan ini?")) return;
+  const confirmDelete = async () => {
+    if (!msgToDelete) return;
 
     try {
       const baseUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080';
-      const res = await fetch(`${baseUrl}/api/chat/messages/${messageId}`, {
+      const res = await fetch(`${baseUrl}/api/chat/messages/${msgToDelete}`, {
         method: "DELETE",
         headers: {
           'ngrok-skip-browser-warning': 'true',
@@ -209,7 +221,15 @@ export default function ChatPage() {
       }
     } catch (err) {
       console.error("Failed to delete message", err);
+    } finally {
+      setIsDeleteDialogOpen(false);
+      setMsgToDelete(null);
     }
+  };
+
+  const handleDeleteMessage = (messageId: string) => {
+    setMsgToDelete(messageId);
+    setIsDeleteDialogOpen(true);
   };
 
   const logout = () => {
@@ -416,6 +436,26 @@ export default function ChatPage() {
           </div>
         )}
       </div>
+
+      <AlertDialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
+        <AlertDialogContent className="bg-white dark:bg-slate-900 border-none">
+          <AlertDialogHeader>
+            <AlertDialogTitle>Hapus Pesan?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Tindakan ini tidak dapat dibatalkan. Pesan akan dihapus secara permanen dari percakapan ini.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel className="border-none bg-slate-100 dark:bg-slate-800">Batal</AlertDialogCancel>
+            <AlertDialogAction 
+              onClick={confirmDelete}
+              className="bg-red-500 hover:bg-red-600 border-none"
+            >
+              Hapus
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }
