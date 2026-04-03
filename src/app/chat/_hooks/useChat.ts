@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { ChatMessage } from "../_types/chat";
+import * as chatService from "../_services/chatService";
 
 export function useChat() {
   const router = useRouter();
@@ -86,11 +87,7 @@ export function useChat() {
     setUnreadCounts(prev => ({ ...prev, [senderUser]: 0 }));
 
     try {
-      const baseUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080';
-      await fetch(`${baseUrl}/api/chat/messages/read/${senderUser}/${recipientUser}`, {
-        method: "PUT",
-        headers: { 'ngrok-skip-browser-warning': 'true' },
-      });
+      await chatService.markMessagesAsRead(senderUser, recipientUser);
     } catch (err) {
       console.error("Failed to mark as read", err);
     }
@@ -98,23 +95,14 @@ export function useChat() {
 
   const loadChatHistory = async (senderUser: string, recipientUser: string) => {
     try {
-      const baseUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080';
-      const res = await fetch(`${baseUrl}/api/chat/messages/${senderUser}/${recipientUser}`, {
-        headers: {
-          'ngrok-skip-browser-warning': 'true',
-          'Cache-Control': 'no-cache'
-        },
+      const history = await chatService.getChatMessages(senderUser, recipientUser);
+      setMessages((prev) => {
+        if (prev.length !== history.length) return history;
+        if (prev.length > 0 && history.length > 0 && prev[prev.length - 1].id !== history[history.length - 1].id) {
+          return history;
+        }
+        return prev;
       });
-      if (res.ok) {
-        const history: ChatMessage[] = await res.json();
-        setMessages((prev) => {
-          if (prev.length !== history.length) return history;
-          if (prev.length > 0 && history.length > 0 && prev[prev.length - 1].id !== history[history.length - 1].id) {
-            return history;
-          }
-          return prev;
-        });
-      }
     } catch (err) {
       console.error("Failed to load history", err);
     }
@@ -130,18 +118,13 @@ export function useChat() {
           continue;
       }
       try {
-        const res = await fetch(`${baseUrl}/api/chat/messages/${me}/${partner}`, {
-            headers: { 'ngrok-skip-browser-warning': 'true' },
-        });
-        if (res.ok) {
-          const msgs: ChatMessage[] = await res.json();
-          const lastRead = lastReadTimestamps[partner] || 0;
-          const unread = msgs.filter(m => 
-            m.senderId === partner && 
-            (m.timestamp ? new Date(m.timestamp).getTime() : 0) > lastRead
-          ).length;
-          counts[partner] = unread;
-        }
+        const msgs = await chatService.getChatMessages(me, partner);
+        const lastRead = lastReadTimestamps[partner] || 0;
+        const unread = msgs.filter(m => 
+          m.senderId === partner && 
+          (m.timestamp ? new Date(m.timestamp).getTime() : 0) > lastRead
+        ).length;
+        counts[partner] = unread;
       } catch (e) {}
     }
     setUnreadCounts(counts);
@@ -149,16 +132,10 @@ export function useChat() {
 
   const loadChatPartners = async (userId: string) => {
     try {
-      const baseUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080';
-      const res = await fetch(`${baseUrl}/api/chat/users/${userId}`, {
-        headers: { 'ngrok-skip-browser-warning': 'true' },
-      });
-      if (res.ok) {
-        const users: string[] = await res.json();
-        setChatPartners(users);
-        if (currentUser) {
-            checkAllUnread(userId, users);
-        }
+      const users = await chatService.getChatPartners(userId);
+      setChatPartners(users);
+      if (currentUser) {
+          checkAllUnread(userId, users);
       }
     } catch (err) {
       console.error("Failed to load chat partners", err);
@@ -234,19 +211,8 @@ export function useChat() {
     setInputText("");
 
     try {
-      const baseUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080';
-      const res = await fetch(`${baseUrl}/api/chat/messages`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "ngrok-skip-browser-warning": "true",
-        },
-        body: JSON.stringify(chatMessage),
-      });
-
-      if (res.ok) {
-        loadChatHistory(currentUser, activeChat);
-      }
+      await chatService.sendMessage(chatMessage);
+      loadChatHistory(currentUser, activeChat);
     } catch (err) {
       console.error("Failed to send message", err);
     }
@@ -256,15 +222,8 @@ export function useChat() {
     if (!msgToDelete) return;
 
     try {
-      const baseUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080';
-      const res = await fetch(`${baseUrl}/api/chat/messages/${msgToDelete}`, {
-        method: "DELETE",
-        headers: { 'ngrok-skip-browser-warning': 'true' },
-      });
-
-      if (res.ok) {
-        loadChatHistory(currentUser, activeChat);
-      }
+      await chatService.deleteMessage(msgToDelete);
+      loadChatHistory(currentUser, activeChat);
     } catch (err) {
       console.error("Failed to delete message", err);
     } finally {
@@ -286,32 +245,15 @@ export function useChat() {
   const uploadFile = async (file: File) => {
     setIsUploading(true);
     try {
-      const response = await fetch(`/api/upload?filename=${encodeURIComponent(file.name)}`, {
-        method: 'POST',
-        body: file,
-      });
+      const blob = await chatService.uploadToBlob(file);
+      const chatMessage: ChatMessage = {
+          senderId: currentUser,
+          recipientId: activeChat,
+          content: blob.url,
+      };
 
-      if (response.ok) {
-        const blob = await response.json();
-        const chatMessage: ChatMessage = {
-           senderId: currentUser,
-           recipientId: activeChat,
-           content: blob.url,
-        };
-
-        const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080'}/api/chat/messages`, {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-              "ngrok-skip-browser-warning": "true",
-            },
-            body: JSON.stringify(chatMessage),
-        });
-
-        if (res.ok) {
-            loadChatHistory(currentUser, activeChat);
-        }
-      }
+      await chatService.sendMessage(chatMessage);
+      loadChatHistory(currentUser, activeChat);
     } catch (err) {
       console.error('Upload failed:', err);
       alert("Gagal mengunggah gambar.");
