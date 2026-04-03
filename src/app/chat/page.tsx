@@ -48,9 +48,35 @@ export default function ChatPage() {
   const [isUploading, setIsUploading] = useState(false);
   const [unreadCounts, setUnreadCounts] = useState<Record<string, number>>({});
   const [lastReadTimestamps, setLastReadTimestamps] = useState<Record<string, number>>({});
+  const [isDarkMode, setIsDarkMode] = useState(true);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [msgToDelete, setMsgToDelete] = useState<string | null>(null);
   
+  // Theme initialization
+  useEffect(() => {
+    const savedTheme = localStorage.getItem("chat_theme");
+    
+    // Default to dark if no theme is saved
+    if (savedTheme !== "light") {
+      setIsDarkMode(true);
+      document.documentElement.classList.add("dark");
+    } else {
+      setIsDarkMode(false);
+      document.documentElement.classList.remove("dark");
+    }
+  }, []);
+
+  const toggleTheme = () => {
+    const newTheme = !isDarkMode;
+    setIsDarkMode(newTheme);
+    if (newTheme) {
+      document.documentElement.classList.add("dark");
+      localStorage.setItem("chat_theme", "dark");
+    } else {
+      document.documentElement.classList.remove("dark");
+      localStorage.setItem("chat_theme", "light");
+    }
+  };
   useEffect(() => {
     const user = localStorage.getItem("chat_username");
     if (!user) {
@@ -449,15 +475,31 @@ export default function ChatPage() {
       <div className="flex-1 flex flex-col bg-slate-50 dark:bg-slate-950">
         {activeChat ? (
           <>
-            <div className="p-4 flex items-center bg-white dark:bg-slate-900 z-10">
-              <Avatar className="h-10 w-10">
-                <AvatarFallback className="bg-purple-600 text-white">
-                  {activeChat.substring(0, 2).toUpperCase()}
-                </AvatarFallback>
-              </Avatar>
-              <div className="ml-3">
-                 <h3 className="font-semibold text-lg text-slate-800 dark:text-slate-100">{activeChat}</h3>
+            <div className="p-4 flex items-center justify-between bg-white dark:bg-slate-900 border-b-none z-10">
+              <div className="flex items-center">
+                <Avatar className="h-10 w-10">
+                  <AvatarFallback className="bg-purple-600 text-white">
+                    {activeChat.substring(0, 2).toUpperCase()}
+                  </AvatarFallback>
+                </Avatar>
+                <div className="ml-3">
+                   <h3 className="font-semibold text-lg text-slate-800 dark:text-slate-100">{activeChat}</h3>
+                </div>
               </div>
+              
+              <Button 
+                variant="ghost" 
+                size="sm" 
+                onClick={toggleTheme} 
+                className="rounded-full w-10 h-10 p-0 text-slate-500 hover:text-indigo-600 hover:bg-neutral-100 dark:hover:bg-slate-800 cursor-pointer transition-all"
+                title={isDarkMode ? "Ganti ke Mode Terang" : "Ganti ke Mode Gelap"}
+              >
+                {isDarkMode ? (
+                  <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>
+                ) : (
+                  <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+                )}
+              </Button>
             </div>
 
             <div className="flex-1 p-4 bg-slate-50 dark:bg-slate-950/50 overflow-y-auto scroll-smooth" ref={scrollRef}>
