@@ -23,6 +23,7 @@ export function useChat() {
   const [msgToDelete, setMsgToDelete] = useState<string | null>(null);
   const [previewFile, setPreviewFile] = useState<File | null>(null);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+  const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
 
   // Theme initialization
   useEffect(() => {
@@ -359,6 +360,10 @@ export function useChat() {
     await uploadFile(fileToSend);
   };
 
+  const toggleSidebar = () => {
+    setIsSidebarCollapsed(!isSidebarCollapsed);
+  };
+
   const logout = () => {
     localStorage.removeItem("chat_username");
     router.push("/");
@@ -394,6 +399,8 @@ export function useChat() {
     handlePaste,
     previewFile,
     previewUrl,
+    isSidebarCollapsed,
+    toggleSidebar,
     cancelPreview,
     sendPreview,
     logout

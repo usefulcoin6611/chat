@@ -164,105 +164,87 @@ export function ChatWindow({
           </div>
         </div>
 
-        <div className="p-4 bg-slate-100 dark:bg-slate-900 overflow-visible z-20 relative">
+        <div className="p-4 bg-slate-50 dark:bg-slate-900 overflow-visible z-20 relative border-t dark:border-slate-800">
           {previewUrl && (
-              <div className="absolute bottom-full left-4 mb-4 p-2 bg-white dark:bg-slate-800 rounded-2xl shadow-xl border border-indigo-100 dark:border-indigo-900/30 animate-in slide-in-from-bottom-4 duration-300 z-50">
-                  <div className="relative group overflow-hidden rounded-xl">
+              <div className="absolute bottom-full left-0 w-full bg-slate-100/95 dark:bg-slate-950/95 backdrop-blur-md flex flex-col items-center justify-center p-8 z-50 h-[calc(100vh-180px)] animate-in fade-in zoom-in duration-300">
+                  <div className="relative group max-w-full max-h-full">
                       <img 
                         src={previewUrl} 
-                        alt="Preview" 
-                        className="max-h-48 w-auto rounded-xl object-contain bg-slate-50 dark:bg-slate-900" 
+                        alt="Focus Preview" 
+                        className="max-h-[60vh] w-auto rounded-xl shadow-2xl object-contain" 
                       />
-                      <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center space-x-3">
-                          <Button 
-                            variant="destructive" 
-                            size="sm" 
-                            onClick={cancelPreview}
-                            className="rounded-full px-4"
-                          >
-                             Batal
-                          </Button>
-                          <Button 
-                            variant="default" 
-                            size="sm" 
-                            onClick={sendPreview}
-                            className="rounded-full px-4 bg-indigo-600 hover:bg-indigo-700"
-                          >
-                             Kirim
-                          </Button>
-                      </div>
+                      <button 
+                        onClick={cancelPreview}
+                        className="absolute -top-4 -right-4 bg-red-500 text-white rounded-full p-2 shadow-lg hover:bg-red-600 transition-all active:scale-90"
+                        title="Batalkan"
+                      >
+                         <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
+                      </button>
                   </div>
-                  <div className="mt-2 flex justify-between items-center px-2">
-                       <p className="text-[10px] text-slate-400 truncate max-w-[150px]">
-                           {previewFile?.name}
-                       </p>
-                       <div className="flex space-x-2">
-                            <button onClick={cancelPreview} className="text-slate-400 hover:text-red-500 transition-colors">
-                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
-                            </button>
-                            <button onClick={sendPreview} className="text-indigo-600 hover:text-indigo-700 transition-colors">
-                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m5 12 5 5L20 7"/></svg>
-                            </button>
+                  
+                  <div className="mt-12 flex space-x-3 items-center">
+                       <div className="w-14 h-14 rounded-lg overflow-hidden bg-white shadow-md relative group/thumb">
+                            <img src={previewUrl} alt="Thumb" className="w-full h-full object-cover" />
+                            <div className="absolute inset-0 bg-black/20 text-white text-[8px] flex items-end justify-center pb-0.5 opacity-0 group-hover/thumb:opacity-100 transition-opacity">
+                                Aktif
+                            </div>
                        </div>
+                       <button 
+                        onClick={() => fileInputRef.current?.click()}
+                        className="w-14 h-14 rounded-lg flex items-center justify-center text-slate-400 hover:text-indigo-500 transition-all bg-white dark:bg-slate-800 shadow-sm"
+                        title="Tambah Foto"
+                       >
+                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M5 12h14"/><path d="M12 5v14"/></svg>
+                       </button>
                   </div>
               </div>
           )}
 
-          <form onSubmit={handleSendMessage} className="flex items-center space-x-2">
-            <Popover>
-                <PopoverTrigger 
-                    className="rounded-full w-10 h-10 p-0 text-slate-500 hover:text-indigo-600 hover:bg-white dark:hover:bg-slate-800 flex-shrink-0 flex items-center justify-center transition-all cursor-pointer bg-transparent border-none outline-none"
-                    title="Emoticon"
+          <form onSubmit={(e) => { e.preventDefault(); if (previewFile) sendPreview(); else handleSendMessage(e); }} className="flex items-center space-x-3 w-full">
+            <div className="flex-1 flex items-center bg-white dark:bg-slate-800 rounded-2xl shadow-sm px-2 h-14">
+                <Popover>
+                    <PopoverTrigger 
+                        className="rounded-full w-10 h-10 p-0 text-slate-500 hover:text-indigo-600 flex-shrink-0 flex items-center justify-center transition-all cursor-pointer bg-transparent border-none outline-none"
+                    >
+                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><path d="M8 14s1.5 2 4 2 4-2 4-2"/><line x1="9" y1="9" x2="9.01" y2="9"/><line x1="15" y1="9" x2="15.01" y2="9"/></svg>
+                    </PopoverTrigger>
+                    <PopoverContent side="top" align="start" className="w-auto p-0 border-none shadow-xl bg-transparent mb-4">
+                        <EmojiPicker onEmojiClick={handleEmojiClick} theme={undefined} lazyLoadEmojis={true} />
+                    </PopoverContent>
+                </Popover>
+
+                <Input
+                  ref={inputRef}
+                  value={inputText}
+                  onChange={(e) => setInputText(e.target.value)}
+                  onPaste={handlePaste}
+                  placeholder="Ketik pesan..."
+                  className="flex-1 border-none focus-visible:ring-0 bg-transparent text-lg"
+                />
+
+                <input type="file" ref={fileInputRef} className="hidden" accept="image/*" onChange={handleFileUpload} />
+                <Button
+                    type="button"
+                    variant="ghost" 
+                    size="sm"
+                    disabled={isUploading}
+                    className="rounded-full w-10 h-10 p-0 text-slate-400 hover:text-indigo-600 cursor-pointer"
+                    onClick={() => fileInputRef.current?.click()}
                 >
-                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><path d="M8 14s1.5 2 4 2 4-2 4-2"/><line x1="9" y1="9" x2="9.01" y2="9"/><line x1="15" y1="9" x2="15.01" y2="9"/></svg>
-                </PopoverTrigger>
-                <PopoverContent side="top" align="start" className="w-auto p-0 border-none shadow-xl bg-transparent mb-2">
-                    <EmojiPicker 
-                      onEmojiClick={handleEmojiClick} 
-                      theme={undefined} // Auto
-                      lazyLoadEmojis={true}
-                    />
-                </PopoverContent>
-            </Popover>
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m21.44 11.05-9.19 9.19a6 6 0 0 1-8.49-8.49l8.57-8.57A4 4 0 1 1 18 8.84l-8.59 8.51a2 2 0 0 1-2.83-2.83l8.49-8.48"/></svg>
+                </Button>
+            </div>
 
-            <input 
-              type="file" 
-              ref={fileInputRef} 
-              className="hidden" 
-              accept="image/*"
-              onChange={handleFileUpload}
-            />
-
-            <Button
-                type="button"
-                variant="ghost" 
-                size="sm"
-                disabled={isUploading}
-                className="rounded-full w-10 h-10 p-0 text-slate-500 hover:text-indigo-600 hover:bg-white dark:hover:bg-slate-800 flex-shrink-0 cursor-pointer"
-                onClick={() => fileInputRef.current?.click()}
-                title="Kirim Gambar"
-            >
-                {isUploading ? (
-                    <div className="w-5 h-5 border-2 border-indigo-600/30 border-t-indigo-600 rounded-full animate-spin" />
-                ) : (
-                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect width="18" height="18" x="3" y="3" rx="2" ry="2"/><circle cx="9" cy="9" r="2"/><path d="m21 15-3.086-3.086a2 2 0 0 0-2.828 0 L6 21"/></svg>
-                )}
-            </Button>
-
-            <Input
-              ref={inputRef}
-              value={inputText}
-              onChange={(e) => setInputText(e.target.value)}
-              onPaste={handlePaste}
-              placeholder="Ketik pesan Anda..."
-              className="flex-1 h-12 rounded-full px-5 bg-white dark:bg-slate-800 border-none focus-visible:ring-0"
-            />
             <Button 
               type="submit" 
               disabled={!inputText.trim() && !previewUrl} 
-              className="rounded-full w-12 h-12 p-0 bg-indigo-600 hover:bg-indigo-700 flex-shrink-0 flex items-center justify-center transition-transform active:scale-95"
+              className="rounded-full w-14 h-14 p-0 shadow-lg transition-all active:scale-90 flex-shrink-0 bg-indigo-600 hover:bg-indigo-700"
             >
-              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-5 h-5 relative"><path d="M22 2L11 13"/><path d="M22 2l-7 20-4-9-9-4 20-7z"/></svg>
+              {isUploading ? (
+                <div className="w-6 h-6 border-3 border-white/30 border-t-white rounded-full animate-spin" />
+              ) : (
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="w-6 h-6"><path d="M22 2L11 13"/><path d="M22 2l-7 20-4-9-9-4 20-7z"/></svg>
+              )}
             </Button>
           </form>
         </div>

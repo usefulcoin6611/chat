@@ -20,6 +20,8 @@ export default function ChatPage() {
         activeChat={chat.activeChat}
         chatPartners={chat.chatPartners}
         unreadCounts={chat.unreadCounts}
+        isCollapsed={chat.isSidebarCollapsed}
+        toggleSidebar={chat.toggleSidebar}
         handleStartChat={chat.handleStartChat}
         handleSelectPartner={chat.handleSelectPartner}
         logout={chat.logout}
